@@ -65,8 +65,3 @@ def telegram_webhook():
 if __name__ == "__main__":
     print("✅ Primo è in esecuzione su Render con webhook...")
     app.run_polling()
-(
-        listen="0.0.0.0",
-        port=int(os.environ.get("PORT", 5000)),
-        webhook_url=f"https://{os.environ['RENDER_EXTERNAL_HOSTNAME']}/{TELEGRAM_BOT_TOKEN}"
-    )
