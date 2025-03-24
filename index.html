@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ bot_name }} - Telegram AI Bot</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i data-feather="message-circle"></i>
+                {{ bot_name }}
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="text-center">{{ bot_name }}</h2>
+                    </div>
+                    <div class="card-body">
+                        {% if error %}
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> {{ error }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="text-center mb-4">
+                            <i data-feather="bot" class="bot-icon"></i>
+                        </div>
+                        
+                        <p class="lead text-center">Welcome to the Telegram AI Bot! This bot uses AI to respond to your messages.</p>
+                        
+                        <div class="bot-status mt-4">
+                            <h4>Bot Status:</h4>
+                            <div id="botStatus" class="alert alert-info">
+                                Checking bot status...
+                            </div>
+                        </div>
+                        
+                        <div class="webhook-section mt-4">
+                            <h4>Webhook Management:</h4>
+                            <div class="d-grid gap-2 d-md-flex">
+                                <button id="setupWebhook" class="btn btn-primary me-md-2">
+                                    <i data-feather="link"></i> Set Up Webhook
+                                </button>
+                                <button id="removeWebhook" class="btn btn-secondary">
+                                    <i data-feather="unlink"></i> Remove Webhook
+                                </button>
+                            </div>
+                            <div id="webhookResult" class="alert mt-3" style="display: none;"></div>
+                        </div>
+                        
+                        <div class="usage-section mt-4">
+                            <h4>How to Use:</h4>
+                            <ol class="list-group">
+                                <li class="list-group-item">Add the bot to Telegram by searching for its username</li>
+                                <li class="list-group-item">Start a conversation by sending the <code>/start</code> command</li>
+                                <li class="list-group-item">Send messages to get AI-powered responses</li>
+                                <li class="list-group-item">Use <code>/help</code> to see all available commands</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer mt-5 py-3 bg-dark">
+        <div class="container text-center">
+            <span class="text-muted">Telegram AI Bot - Powered by OpenAI</span>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        // Initialize Feather icons
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+            
+            // Check bot health
+            fetch('/health')
+                .then(response => response.json())
+                .then(data => {
+                    const statusDiv = document.getElementById('botStatus');
+                    
+                    if (data.status === 'ok' && data.bot_token_configured && data.openai_api_key_configured) {
+                        statusDiv.className = 'alert alert-success';
+                        statusDiv.innerHTML = '<i data-feather="check-circle"></i> Bot is configured and ready to use!';
+                    } else {
+                        statusDiv.className = 'alert alert-warning';
+                        let message = '<i data-feather="alert-triangle"></i> Bot is not fully configured:<ul>';
+                        
+                        if (!data.bot_token_configured) {
+                            message += '<li>Telegram Bot Token is missing</li>';
+                        }
+                        
+                        if (!data.openai_api_key_configured) {
+                            message += '<li>OpenAI API Key is missing</li>';
+                        }
+                        
+                        message += '</ul>';
+                        statusDiv.innerHTML = message;
+                    }
+                    
+                    feather.replace();
+                })
+                .catch(error => {
+                    const statusDiv = document.getElementById('botStatus');
+                    statusDiv.className = 'alert alert-danger';
+                    statusDiv.innerHTML = '<i data-feather="x-circle"></i> Error checking bot health: ' + error.message;
+                    feather.replace();
+                });
+            
+            // Set up webhook button
+            document.getElementById('setupWebhook').addEventListener('click', function() {
+                fetch('/setup')
+                    .then(response => response.json())
+                    .then(data => {
+                        const resultDiv = document.getElementById('webhookResult');
+                        resultDiv.style.display = 'block';
+                        
+                        if (data.success) {
+                            resultDiv.className = 'alert alert-success';
+                            resultDiv.innerHTML = '<i data-feather="check-circle"></i> Webhook set up successfully at: ' + data.webhook_url;
+                        } else {
+                            resultDiv.className = 'alert alert-danger';
+                            resultDiv.innerHTML = '<i data-feather="x-circle"></i> Failed to set up webhook: ' + data.description;
+                        }
+                        
+                        feather.replace();
+                    })
+                    .catch(error => {
+                        const resultDiv = document.getElementById('webhookResult');
+                        resultDiv.style.display = 'block';
+                        resultDiv.className = 'alert alert-danger';
+                        resultDiv.innerHTML = '<i data-feather="x-circle"></i> Error setting up webhook: ' + error.message;
+                        feather.replace();
+                    });
+            });
+            
+            // Remove webhook button
+            document.getElementById('removeWebhook').addEventListener('click', function() {
+                fetch('/remove')
+                    .then(response => response.json())
+                    .then(data => {
+                        const resultDiv = document.getElementById('webhookResult');
+                        resultDiv.style.display = 'block';
+                        
+                        if (data.success) {
+                            resultDiv.className = 'alert alert-success';
+                            resultDiv.innerHTML = '<i data-feather="check-circle"></i> Webhook removed successfully';
+                        } else {
+                            resultDiv.className = 'alert alert-danger';
+                            resultDiv.innerHTML = '<i data-feather="x-circle"></i> Failed to remove webhook: ' + data.description;
+                        }
+                        
+                        feather.replace();
+                    })
+                    .catch(error => {
+                        const resultDiv = document.getElementById('webhookResult');
+                        resultDiv.style.display = 'block';
+                        resultDiv.className = 'alert alert-danger';
+                        resultDiv.innerHTML = '<i data-feather="x-circle"></i> Error removing webhook: ' + error.message;
+                        feather.replace();
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

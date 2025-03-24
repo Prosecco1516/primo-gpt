@@ -1,0 +1,53 @@
+/* Custom styles for the Telegram AI Bot */
+
+.bot-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 1rem;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    line-height: 60px;
+}
+
+/* For smaller screens */
+@media (max-width: 768px) {
+    .footer {
+        position: relative;
+        margin-top: 2rem;
+    }
+}
+
+/* Make buttons more visible */
+.btn-primary {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.btn-secondary {
+    background-color: var(--bs-secondary);
+    border-color: var(--bs-secondary);
+}
+
+/* Add some spacing between list items */
+.list-group-item {
+    padding: 0.75rem 1.25rem;
+}
+
+/* Make the webhook result more noticeable */
+#webhookResult {
+    margin-top: 1rem;
+    font-weight: bold;
+}
+
+/* Style for code blocks */
+code {
+    background-color: var(--bs-dark);
+    color: var(--bs-light);
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+}
