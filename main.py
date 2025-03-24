@@ -40,15 +40,25 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Errore: {e}")
         await update.message.reply_text("Errore nel generare la risposta. Riprova tra poco.")
 
+# Funzione webhook
+async def webhook(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await application.process_update(update)
+
 # Avvio dell'app
-def main():
+async def main():
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    logger.info("Primo è in esecuzione...")
-    app.run_polling()
+    logger.info("Primo è in esecuzione con webhook...")
+    await app.run_webhook(
+        listen="0.0.0.0",
+        port=int(os.environ.get("PORT", 5000)),
+        url_path=TELEGRAM_BOT_TOKEN,
+        webhook_url=f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME')}/{TELEGRAM_BOT_TOKEN}"
+    )
 
 if __name__ == '__main__':
-    main()
+    import asyncio
+    asyncio.run(main())
