@@ -1,64 +1,71 @@
 import os
-import logging
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 import openai
+from flask import Flask, request
 
-# Configura logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Recupera le chiavi API
+# Recupera le chiavi
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 openai.api_key = OPENAI_API_KEY
 
-# Funzione start
+# Flask app per gestire il webhook
+flask_app = Flask(__name__)
+
+# Applicazione Telegram
+app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
+
+# Identità di Primo
+SYSTEM_PROMPT = (
+    "Sei Primo, un assistente AI creato per supportare il team in ogni sfida quotidiana. "
+    "Sei diretto, pratico e positivo. Quando puoi, incoraggi. Se serve, vai dritto al punto. "
+    "Sei ancora in fase di allenamento, quindi ogni domanda e ogni correzione ti rendono più bravo. "
+    "Parli come uno di loro, con rispetto e concretezza. Fai sentire le persone parte di qualcosa di importante."
+)
+
+# Comando /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "Ciao! Sono Primo, il tuo assistente.\n"
-        "Sono ancora in fase di allenamento.\n"
-        "Parlami, correggimi, metti alla prova la mia testa."
+        "Ciao! 👋 Sono Primo, il tuo assistente AI.\n\n"
+        "Sono qui per aiutarti a lavorare meglio, senza stress e senza perdere tempo.\n"
+        "Ogni domanda che mi fai, ogni risposta che mi correggi, mi aiuta a diventare più utile per tutti noi.\n\n"
+        "Parlami, metti alla prova la mia testa… e io diventerò il Primo vero alleato del team. 💪"
     )
 
-# Funzione di risposta
+# Gestione messaggi
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4",
             messages=[
-                {"role": "system", "content": "Sei Primo, un assistente AI pratico, diretto e positivo."},
-                {"role": "user", "content": user_message},
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_message}
             ]
         )
-        reply = response.choices[0].message.content
+        reply = response["choices"][0]["message"]["content"]
         await update.message.reply_text(reply)
-
     except Exception as e:
-        logger.error(f"Errore: {e}")
-        await update.message.reply_text("Errore nel generare la risposta. Riprova tra poco.")
+        await update.message.reply_text("Errore nel generare la risposta.")
+        print(f"Errore: {e}")
 
-# Funzione webhook
-async def webhook(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await application.process_update(update)
+# Collega i comandi
+app.add_handler(CommandHandler("start", start))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-# Avvio dell'app
-async def main():
-    app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+# Webhook di Flask
+@flask_app.route(f"/{TELEGRAM_BOT_TOKEN}", methods=["POST"])
+def telegram_webhook():
+    update = Update.de_json(request.get_json(force=True), app.bot)
+    app.update_queue.put_nowait(update)
+    return "ok"
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-    logger.info("Primo è in esecuzione con webhook...")
-    await app.run_webhook(
+# Avvio del bot
+if __name__ == "__main__":
+    print("✅ Primo è in esecuzione su Render con webhook...")
+    app.run_webhook(
         listen="0.0.0.0",
         port=int(os.environ.get("PORT", 5000)),
-        url_path=TELEGRAM_BOT_TOKEN,
-        webhook_url=f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME')}/{TELEGRAM_BOT_TOKEN}"
+        webhook_url=f"https://{os.environ['RENDER_EXTERNAL_HOSTNAME']}/{TELEGRAM_BOT_TOKEN}"
     )
-
-if __name__ == '__main__':
-    import asyncio
-    asyncio.run(main())
