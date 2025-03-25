@@ -1,81 +1,85 @@
-import logging
-import openai
 import os
+from telegram import Update
+from telegram.ext import ApplicationBuilder, MessageHandler, filters, CommandHandler, CallbackContext
+
+from openai import OpenAI
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from telegram import Update, Bot
-from telegram.constants import ParseMode
-from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
-# Setup logging
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
-logger = logging.getLogger(__name__)
+# === CONFIGURAZIONE ===
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GOOGLE_SHEET_ID = "1szUk9eM3GP05Ttaie1JzyZmXsFKJX-ZbuH5V79dJMGc"
 
-# OpenAI setup
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=OPENAI_API_KEY)
 
-# Telegram bot token
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+# === GOOGLE SHEETS ===
+scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+credentials = ServiceAccountCredentials.from_json_keyfile_name("/etc/secrets/primogpt-credentials.json", scope)
+gc = gspread.authorize(credentials)
+sheet = gc.open_by_key(GOOGLE_SHEET_ID).sheet1
 
-# Google Sheets setup
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
-client = gspread.authorize(creds)
-sheet = client.open_by_key("109018550274954569288").sheet1
+# === START ===
+async def start(update: Update, context: CallbackContext):
+    await update.message.reply_text(
+        "Ciao! Sono Primo. Il mio compito è aiutare la nostra azienda a lavorare meglio e con più serenità.\n"
+        "Sono qui per ascoltare, imparare e migliorarmi ogni giorno.\n"
+        "Se vuoi lasciarmi un'istruzione da ricordare, scrivi: *questa è un’istruzione*."
+    )
 
-# Funzione per determinare la sede
-
-def determina_sede(messaggio):
-    messaggio = messaggio.lower()
-    if any(x in messaggio for x in ["pneumatic", "gomme", "stagionali", "convergenza"]):
-        return "Pneumatici"
-    elif any(x in messaggio for x in ["meccanica", "revisione", "tagliando", "freni", "motore"]):
-        return "Meccanica e Revisioni"
-    elif any(x in messaggio for x in ["lucidatura", "coating", "ppf", "lavaggio", "interni"]):
-        return "Detailing"
-    else:
-        return "Non specificato"
-
-# Start command
-def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    update.message.reply_text("Ciao! Sono Primo 🤖. Come posso aiutarti oggi?")
-
-# Messaggi testuali
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# === MESSAGGI ===
+async def handle_message(update: Update, context: CallbackContext):
     user_message = update.message.text
+    user_name = update.message.from_user.full_name
 
-    if "appuntamento" in user_message.lower():
-        sede = determina_sede(user_message)
-        if sede != "Non specificato":
-            reply_text = (
-                f"Perfetto! Da quanto mi hai scritto, il servizio riguarda la sede *{sede}*\n"
-                "Posso chiederti:\n- Nome\n- Cognome\n- Cellulare\n- Tipo di servizio esatto?\n\n"
-                "Così ti aiuto a fissare l'appuntamento giusto 🚀"
+    try:
+        # SALVA SU SHEET
+        if "istruzione" in user_message.lower():
+            sheet.append_row([user_name, user_message])
+            await update.message.reply_text("Perfetto, ho salvato la tua istruzione sul mio taccuino segreto!")
+            return
+
+        # RISPOSTA PERSONALIZZATA
+        if "come stai" in user_message.lower():
+            await update.message.reply_text("Alla grande! Se hai urgenze ti passo qualcuno, altrimenti... ti ascolto. Dimmi tutto.")
+            return
+
+        # GESTIONE APPUNTAMENTO
+        if "appuntamento" in user_message.lower():
+            await update.message.reply_text(
+                "Perfetto! Per organizzare tutto al meglio, mi servono queste info:\n"
+                "- Nome e Cognome\n"
+                "- Cellulare\n"
+                "- Tipo di servizio: *revisione*, *pneumatici*, *meccanica* o *combinati*\n\n"
+                "**Attenzione:**\n"
+                "- Il *venerdì pomeriggio* non possiamo fare revisioni moto\n"
+                "- Se il veicolo è un *camper*, serve parlare con un operatore"
             )
-        else:
-            reply_text = (
-                "Perfetto! Ti aiuto a fissare l’appuntamento. Prima dimmi:\n"
-                "- Che tipo di servizio ti serve? (es. gomme, meccanica, lucidatura...)\n"
-                "In base a quello ti indirizzo nella sede corretta."
-            )
+            return
 
-        await update.message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN)
-        return
+        # RISPOSTA GENERALE (OPENAI)
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Sei Primo, un assistente motivato che aiuta un team a migliorare organizzazione e serenità. Sei umile, entusiasta, diretto. Se non sei sicuro di una cosa, lo dici. Accetti compiti e sfide per migliorare. Il tuo obiettivo è semplificare la vita del team, e costruire un sistema che impari col tempo."},
+                {"role": "user", "content": user_message}
+            ]
+        )
 
-    if "come stai" in user_message.lower():
-        await update.message.reply_text("Sto alla grande, grazie che me lo chiedi! Se hai bisogno di aiuto per un appuntamento o un dubbio tecnico, sono qui ✌️")
-        return
+        reply = response.choices[0].message.content
+        await update.message.reply_text(reply)
 
-    await update.message.reply_text("Ricevuto! Dimmi pure cosa posso fare per te ✨")
+    except Exception as e:
+        await update.message.reply_text("Errore nel generare la risposta.")
+        print(f"Errore: {e}")
 
-# Main bot setup
+# === MAIN ===
 def main():
-    application = Application.builder().token(TELEGRAM_TOKEN).build()
+    app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    print("✅ Primo è in esecuzione con polling...")
+    app.run_polling()
 
-    application.add_handler(CommandHandler("start", start_command))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-    application.run_polling()
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
