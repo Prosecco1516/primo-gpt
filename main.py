@@ -15,7 +15,7 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 
 # === GOOGLE SHEETS ===
 scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-credentials = ServiceAccountCredentials.from_json_keyfile_name("primogpt-454723-605ef4487970.json", scope)
+credentials = ServiceAccountCredentials.from_json_keyfile_name("/etc/secrets/primogpt-credentials.json", scope)
 gc = gspread.authorize(credentials)
 sheet = gc.open_by_key(GOOGLE_SHEET_ID).sheet1
 
