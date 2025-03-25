@@ -9,7 +9,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 # === CONFIGURAZIONE ===
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-GOOGLE_SHEET_ID = "109018550274954569288"
+GOOGLE_SHEET_ID = "1szUk9eM3GP05Ttaie1JzyZmXsFKJX-ZbuH5V79dJMGc"
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
