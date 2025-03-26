@@ -11,12 +11,13 @@ def setup_google_sheet():
         "https://www.googleapis.com/auth/drive"
     ]
 
-    if not os.path.exists("credentials.json"):
-        print("❌ File credentials.json NON trovato nella root del progetto.")
+    filepath = "/etc/secrets/credentials.json"
+    if not os.path.exists(filepath):
+        print("❌ File credentials.json NON trovato nella cartella /etc/secrets/.")
         return False, None
 
     try:
-        creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+        creds = ServiceAccountCredentials.from_json_keyfile_name(filepath, scope)
         client = gspread.authorize(creds)
         sheet = client.open_by_key("109018550274954569288").sheet1
         print("✅ Google Sheets attivo")
