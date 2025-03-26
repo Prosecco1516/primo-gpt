@@ -1,6 +1,6 @@
-from telegram.ext import ApplicationBuilder
-from bot.handlers import start_handler, message_handler  # <-- NOTA: gli handler già costruiti
 import os
+from telegram.ext import ApplicationBuilder
+from bot.handlers import start_handler, message_handler
 
 application = ApplicationBuilder().token(os.getenv("TELEGRAM_TOKEN")).build()
 application.add_handler(start_handler)
