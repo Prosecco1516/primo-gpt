@@ -1,4 +1,5 @@
 import os
+from telegram import Update
 from telegram.ext import ApplicationBuilder
 from bot.handlers import start_handler, message_handler
 
