@@ -1,15 +1,20 @@
 # main.py
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
+import os
+from telegram.ext import ApplicationBuilder
 from bot.handlers import start_command, handle_message
 
-def main():
-    application = ApplicationBuilder().token("8108284075:AAHs2urWXlt0sGzXG2EfCr8PB-XK903GGNc").build()
+WEBHOOK_PATH = "/webhook"
+WEBHOOK_URL = os.getenv("RENDER_EXTERNAL_URL") + WEBHOOK_PATH
 
-    application.add_handler(CommandHandler("start", start_command))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+application = ApplicationBuilder().token(os.getenv("BOT_TOKEN")).build()
 
-    print("🟢 Bot avviato...")
-    application.run_polling()
+application.add_handler(start_command)
+application.add_handler(handle_message)
 
-if __name__ == "__main__":
-    main()
+print("🟢 Avvio webhook...")
+
+application.run_webhook(
+    listen="0.0.0.0",
+    port=int(os.environ.get("PORT", 10000)),
+    webhook_url=WEBHOOK_URL
+)
