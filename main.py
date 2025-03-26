@@ -2,6 +2,7 @@ import logging
 import openai
 import os
 import os.path
+import asyncio
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from telegram import Update, Bot
@@ -84,13 +85,19 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("Ricevuto! Dimmi pure cosa posso fare per te ✨")
 
+# Eliminazione webhook per evitare conflitti
+async def delete_webhook_if_exists():
+    bot = Bot(token=TELEGRAM_TOKEN)
+    await bot.delete_webhook()
+    print("✅ Webhook eliminato prima di avviare il polling.")
+
 # Main bot setup
 def main():
-    application = Application.builder().token(TELEGRAM_TOKEN).build()
+    asyncio.run(delete_webhook_if_exists())
 
+    application = Application.builder().token(TELEGRAM_TOKEN).build()
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
     application.run_polling()
 
 if __name__ == "__main__":
