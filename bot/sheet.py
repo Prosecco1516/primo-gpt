@@ -11,7 +11,7 @@ def setup_google_sheet():
         "https://www.googleapis.com/auth/drive"
     ]
 
-    filepath = filepath = "/etc/secrets/credentials.json"
+    filepath = "credentials.json"
 
     if not os.path.exists(filepath):
         print("❌ File credentials.json NON trovato nella root del progetto.")
