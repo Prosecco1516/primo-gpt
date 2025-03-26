@@ -1,31 +1,18 @@
-import os
+# sheet.py
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
+import os
 
+# Autenticazione con Google Sheets
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+client = gspread.authorize(creds)
 
-# Autenticazione e connessione allo Sheet
-scope = [
-    "https://spreadsheets.google.com/feeds",
-    "https://www.googleapis.com/auth/drive"
-]
+# Apri il foglio di lavoro tramite ID
+SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
+sheet = client.open_by_key(SHEET_ID).sheet1
 
-creds = ServiceAccountCredentials.from_json_keyfile_name(
-    "credentials.json", scope
-)
-
-gs_client = gspread.authorize(creds)
-sheet = gs_client.open("PrimoGPT").sheet1  # Assicurati che il nome sia corretto
-
-
-def salva_istruzione_su_sheet(utente, messaggio, risposta):
-    try:
-        if not messaggio.lower().startswith("istruzione:"):
-            return
-
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        nuova_riga = [timestamp, utente, messaggio, risposta]
-        sheet.append_row(nuova_riga)
-
-    except Exception as e:
-        print("Errore nel salvataggio su Google Sheet:", e)
+def save_to_sheet(user, message, response):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    sheet.append_row([timestamp, user, message, response])
