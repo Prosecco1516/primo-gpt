@@ -5,7 +5,9 @@ import os
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-application = ApplicationBuilder().token(BOT_TOKEN).build()
+import os
+application = ApplicationBuilder().token(os.environ["TELEGRAM_TOKEN"]).build()
+
 application.add_handler(start_handler)
 application.add_handler(message_handler)
 
