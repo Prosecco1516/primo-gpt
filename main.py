@@ -1,11 +1,9 @@
-# main.py
 import os
 import asyncio
 from telegram.ext import ApplicationBuilder
-from bot.handlers import start_command, handle_message
+from bot.handlers import start_command, handle_message_handler
 
 async def main():
-    # Legge il token da variabile ambiente
     telegram_token = os.getenv("TELEGRAM_TOKEN")
 
     if not telegram_token:
@@ -14,7 +12,7 @@ async def main():
 
     application = ApplicationBuilder().token(telegram_token).build()
     application.add_handler(start_command)
-    application.add_handler(handle_message)
+    application.add_handler(handle_message_handler)
 
     print("🟢 PrimoGPT avviato...")
     await application.run_polling()
