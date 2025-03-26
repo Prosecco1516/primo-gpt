@@ -1,20 +1,23 @@
 # main.py
 import os
+import asyncio
 from telegram.ext import ApplicationBuilder
 from bot.handlers import start_command, handle_message
 
-WEBHOOK_PATH = "/webhook"
-WEBHOOK_URL = os.getenv("RENDER_EXTERNAL_URL") + WEBHOOK_PATH
+async def main():
+    # Legge il token da variabile ambiente
+    telegram_token = os.getenv("TELEGRAM_TOKEN")
 
-application = ApplicationBuilder().token(os.getenv("BOT_TOKEN")).build()
+    if not telegram_token:
+        print("❌ TELEGRAM_TOKEN non impostato.")
+        return
 
-application.add_handler(start_command)
-application.add_handler(handle_message)
+    application = ApplicationBuilder().token(telegram_token).build()
+    application.add_handler(start_command)
+    application.add_handler(handle_message)
 
-print("🟢 Avvio webhook...")
+    print("🟢 PrimoGPT avviato...")
+    await application.run_polling()
 
-application.run_webhook(
-    listen="0.0.0.0",
-    port=int(os.environ.get("PORT", 10000)),
-    webhook_url=WEBHOOK_URL
-)
+if __name__ == "__main__":
+    asyncio.run(main())
