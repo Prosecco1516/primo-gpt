@@ -1,23 +1,17 @@
+# main.py
 import os
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Ciao! Sono PrimoGPT 🤖")
-
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
-    await update.message.reply_text(f"Hai scritto: {text}")
+from telegram.ext import ApplicationBuilder
+from handlers import start_handler, message_handler
 
 def main():
+    BOT_TOKEN = os.getenv("BOT_TOKEN_TEMP")
+
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(start_handler)
+    app.add_handler(message_handler)
 
-    print("\U0001F7E2 PrimoGPT avviato correttamente...")
+    print("🟢 PrimoGPT attivo su Render...")
     app.run_polling()
 
 if __name__ == "__main__":
