@@ -1,7 +1,7 @@
 # main.py
 import os
 from telegram.ext import ApplicationBuilder
-from handlers import start_handler, message_handler
+from bot.handlers import start_handler, message_handler
 
 def main():
     BOT_TOKEN = os.getenv("BOT_TOKEN_TEMP")
