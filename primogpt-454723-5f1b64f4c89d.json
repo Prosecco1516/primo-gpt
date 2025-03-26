@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "primogpt-454723",
+  "private_key_id": "5f1b64f4c89d4c76192d599c052e39c66d37937d",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCpyeh2RxejSZSH\nEMwyebP7IiwCQL00/bJdQBT6x0s8yoS3wmT4r66BGTOXH/s/N5wuoV1dJnM5KDwl\n7/oHFBH++k83LLaTwxCRSFf3la3Q0A/yhx2Erxz5ExuuG7Wdh/h6/vhXnDUyyQaB\n65CElehW2i44OTaLvlmd+8KFFBCUeaXVEMlNOIvJCpWXSY+3CLSh2pgfjuUSMG0d\n88pm2HJc21ztQmW6tRX5MxwTkNOdIHAQVq+ameI+a//66XY80onWy5v9Lx0IvJDo\n8cSHSSuNcyO91OzB5nQIQYN6DPQo2H4ffK2S/uWLk8mDQQtMOFaiUur8PAmgrIYN\n+Alai4MjAgMBAAECggEAEJWlzMPV9b+ur+C+qWGE6I9mcBPlx2LOhNhJFFPaMAZy\nH0bwOPBkIb0V8nmPv5WNfmqJpZsnXxpkgaomqIFX3qmRikimTtmbaS2BVjA7Ka3h\nGOYExpyaPmQU7JVNUKVi6pS0Kk6aTasgJRme5KyF5NHr+Nbx0oWV2F4qmngixHXS\ntev2ujUMeuvNaOCp0bCfRUe1j7K5v1qUalMJFd12SDh3w/IdyfU/TR1VOfPgTHn4\nsWFw7Za1rIlbQFmveMgCJHIdj7pnaFnxz9hzX2Q32cS1DJgnhIxa70LoWdmJESE1\nmEKj14QOTsO5ZLlHxB+EszNnF3Bt48Dns1LX1Hk8hQKBgQDUc2P3NJqueiAbQm0s\nXVfuKRaGN+SNcSHEytn+jh/hBsRH6xvcQ3R4uJkT3QErAklavo4hHEEKrHaD9szk\nbWgAb51FzDQ16gNKnjtQiOuCDS2GzQ6iRLehVJn5iEnmv+tXEc5zQuZ/SM8CXpDI\nmSaGg2cOAY7VuztlvVFSe92MpQKBgQDMl8aCOmCw+tgmH8AbWmSI49ySDwE0QRYv\nW1c+1/WRSfumKGgDImQOOzzR/pH3z+q7XdCzzbkRqqwCmKOqPu5J9bKBYzCQlw+6\nUCQUJHQMFBhPm0lV9UzBuJl/ZYTzRPa4qRhCQ8hD6oIRNUH3gEAHeqK/pwPt4qaY\ndS5RAETeJwKBgBkSPPvRU2e/tcZBwox3v4a1hpj0Q56FeUy1+5/UueJeYA90qWcG\n9tnAPyBe9mJS9MEmt7MkmHBgBeRw3aEfYCSdB1xTSt4J7bWCktFgNxqz32mHDXEM\n1vbM+xa9hKscfvNZgJmNjZH7z6Ih8sgZerhpDWJTwL1sSQgqnUw0neKZAoGBAIej\nhBbojxwmYdD8sccwqYBb2Or4iarUD9o7q17dnE/DhdQF69dQIJeSzGLIbIuny46G\nxwu9sxm0Vi+udKs055QfEUZYtWTW0bWK1jCIbmtnkyqL4BXd+BJiyVk9u+Pwb8XD\nTXL5LzdfrPWtolttKoYK1wVKu/8liZ9/6MII9J93AoGBAIHGNxqK2x/lrRXyQKkX\nvk6u1WCB9ZaBScA1lF1kTKqbf9+NzzPUAtUVwxpotgSu5FVCrWj35TIJFHc0iWky\nWOliw6gdfmS00rl42JchRqA8zAhXKK/g3qNlghKgyLu2r/vRUb8EggfJjulWms1W\nvfPDnZ2RjA5bm8mVWHA3ZGAU\n-----END PRIVATE KEY-----\n",
+  "client_email": "primogpt@primogpt-454723.iam.gserviceaccount.com",
+  "client_id": "109018550274954569288",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/primogpt%40primogpt-454723.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
