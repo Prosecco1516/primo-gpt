@@ -1,15 +1,12 @@
-# main.py
-import os
 from telegram.ext import ApplicationBuilder
-from bot.handlers import start_command, handle_message_handler
+from bot.handlers import start_command, handle_message
+import os
 
-telegram_token = os.getenv("TELEGRAM_TOKEN")
-if not telegram_token:
-    print("❌ TELEGRAM_TOKEN non trovato.")
-else:
-    application = ApplicationBuilder().token(telegram_token).build()
+if __name__ == "__main__":
+    application = ApplicationBuilder().token(os.getenv("TELEGRAM_TOKEN")).build()
+
     application.add_handler(start_command)
-    application.add_handler(handle_message_handler)
+    application.add_handler(handle_message)
 
     print("🟢 PrimoGPT avviato...")
-    application.run_polling()
+    application.run_polling()  # Niente asyncio qui!
