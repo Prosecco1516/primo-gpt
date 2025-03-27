@@ -16,6 +16,9 @@ client = gspread.authorize(creds)
 SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
 sheet = client.open_by_key(SHEET_ID).sheet1
 
+# Flag per mostrare il messaggio introduttivo solo una volta per utente
+shown_intro = set()
+
 def inferisci_topic(message):
     msg = message.lower()
     if "appuntamento" in msg:
@@ -44,8 +47,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message.text
     chat_type = update.message.chat.type
 
-    # Carattere di Primo
-    tono = "🤖 Primo | Sono l'ultimo arrivato, sto imparando! Ora il mio obiettivo è diventare bravissimo a gestire appuntamenti, telefonate e aiutare in ogni situazione. Dimmi come posso esserti utile."
+    # Carattere di Primo mostrato una sola volta per utente
+    tono_intro = "🤖 Primo | Sono l'ultimo arrivato, sto imparando! Ora il mio obiettivo è diventare bravissimo a gestire appuntamenti, telefonate e aiutare in ogni situazione. Dimmi come posso esserti utile."
 
     # Analisi topic prima della risposta
     topic = inferisci_topic(message)
@@ -64,13 +67,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         response = "💡 Per aiutarmi ad allenarmi, scrivi una frase con la parola 'istruzione'. Oppure dimmi se hai bisogno di un aiuto su ferie, appuntamenti o se hai avuto un problema."
 
-    # Gestione istruzioni
+    # Salvataggio solo se contiene la parola 'istruzione'
     if "istruzione" in message.lower():
         save_to_sheet(user, message, response, topic)
         await update.message.reply_text("📝 Ok, ho trascritto l'istruzione.")
 
-    # Risposta finale con tono
-    await update.message.reply_text(f"{tono}\n\n{response}")
+    # Mostra tono introduttivo solo se utente nuovo
+    if user not in shown_intro:
+        await update.message.reply_text(f"{tono_intro}\n\n{response}")
+        shown_intro.add(user)
+    else:
+        await update.message.reply_text(response)
 
     # Disabilita temporaneamente il gruppo per non sporcarlo
     if chat_type != "private":
