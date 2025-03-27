@@ -23,10 +23,11 @@ def save_to_sheet(user, message, response):
     sheet.append_row([timestamp, user, message, response])
 
 # Handler da integrare in handlers.py
-def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user.full_name
     message = update.message.text
     response = f"Hai scritto: {message}"
 
-    update.message.reply_text(response)
+    await update.message.reply_text(response)
     save_to_sheet(user, message, response)
+
