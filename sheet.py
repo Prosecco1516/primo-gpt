@@ -30,6 +30,8 @@ def inferisci_topic(message):
         return "preventivo"
     elif "cliente" in msg:
         return "cliente"
+    elif "ruota" in msg or "bucata" in msg or "panne" in msg or "fermo" in msg:
+        return "disguido"
     return "altro"
 
 def save_to_sheet(user, message, response, topic):
@@ -43,22 +45,24 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_type = update.message.chat.type
 
     # Carattere di Primo
-    tono = "🤖 Primo | Sempre al tuo fianco per semplificarti la giornata."
+    tono = "🤖 Primo | Sono l'ultimo arrivato, sto imparando! Ora il mio obiettivo è diventare bravissimo a gestire appuntamenti, telefonate e aiutare in ogni situazione. Dimmi come posso esserti utile."
 
     # Analisi topic prima della risposta
     topic = inferisci_topic(message)
 
     # Logica intelligente di risposta
     if "appuntamento" in message.lower():
-        response = "📅 Vuoi fissare un appuntamento. Che tipo di servizio ti serve? (Revisione, Pneumatici, Meccanica?)"
+        response = "📅 Vuoi fissare un appuntamento. Ti serve fissarne uno nuovo o spostarne uno? E puoi lasciare la macchina o aspetti in sede?"
     elif message.lower().strip() == "revisione":
         response = "🚗 Ti consiglio la sede di Via San Donà. Vuoi che ti metta in contatto?\n\n📞 Finché non mi allenate a fare bene il mio lavoro, i ragazzi della meccanica faticano a rispondere a tutte le chiamate!"
     elif message.lower().strip() == "pneumatici":
         response = "🛞 Ti consiglio la sede del Centro La Piazza. Vuoi che ti fissi l’appuntamento?"
     elif message.lower().strip() == "meccanica":
         response = "🔧 Sembra che tu voglia fare le cose fatte bene. I nostri meccanici sono i migliori, ma servono info precise. Vuoi procedere?"
+    elif topic == "disguido":
+        response = "🔧 Sembra un problema urgente. Vuoi che ti metta in contatto subito con l'officina più vicina o che ti dia dei consigli utili per gestire la situazione?"
     else:
-        response = "💡 Per aiutarmi ad allenarmi, scrivi una frase con la parola 'istruzione'."
+        response = "💡 Per aiutarmi ad allenarmi, scrivi una frase con la parola 'istruzione'. Oppure dimmi se hai bisogno di un aiuto su ferie, appuntamenti o se hai avuto un problema."
 
     # Gestione istruzioni
     if "istruzione" in message.lower():
