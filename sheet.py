@@ -26,8 +26,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message.text
     chat_type = update.message.chat.type
 
-    response = f"Hai scritto: {message}"
+    # Logica intelligente di risposta
+    if "appuntamento" in message.lower():
+        response = "📅 Vuoi fissare un appuntamento. Che tipo di servizio ti serve? (Revisione, Pneumatici, Meccanica?)"
+    else:
+        response = "🤖 Non ho capito bene. Se vuoi, scrivi 'istruzione:' seguito da una frase per aiutarmi a migliorare."
 
+    # Gestione istruzioni
     if "istruzione" in message.lower():
         save_to_sheet(user, message, response)
         await update.message.reply_text("📝 Ok, ho trascritto l'istruzione.")
