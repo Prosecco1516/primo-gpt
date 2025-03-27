@@ -15,10 +15,8 @@ async def main():
 
     print("🟢 PrimoGPT attivo in modalità webhook...")
 
-    await app.run_webhook(
-        listen="0.0.0.0",
-        port=int(os.environ.get("PORT", 10000)),
-        webhook_url=WEBHOOK_URL,
+    await app.run_polling()
+
     )
 
 
