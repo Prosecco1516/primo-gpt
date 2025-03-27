@@ -51,6 +51,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Logica intelligente di risposta
     if "appuntamento" in message.lower():
         response = "📅 Vuoi fissare un appuntamento. Che tipo di servizio ti serve? (Revisione, Pneumatici, Meccanica?)"
+    elif message.lower().strip() == "revisione":
+        response = "🚗 Ti consiglio la sede di Via San Donà. Vuoi che ti metta in contatto?\n\n📞 Finché non mi allenate a fare bene il mio lavoro, i ragazzi della meccanica faticano a rispondere a tutte le chiamate!"
+    elif message.lower().strip() == "pneumatici":
+        response = "🛞 Ti consiglio la sede del Centro La Piazza. Vuoi che ti fissi l’appuntamento?"
+    elif message.lower().strip() == "meccanica":
+        response = "🔧 Sembra che tu voglia fare le cose fatte bene. I nostri meccanici sono i migliori, ma servono info precise. Vuoi procedere?"
     else:
         response = "💡 Per aiutarmi ad allenarmi, scrivi una frase con la parola 'istruzione'."
 
