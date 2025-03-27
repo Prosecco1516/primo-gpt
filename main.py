@@ -2,7 +2,7 @@
 import os
 import asyncio
 from telegram.ext import ApplicationBuilder
-from bot.handlers import start_handler, message_handler
+from handlers import start_handler, message_handler
 
 
 async def main():
