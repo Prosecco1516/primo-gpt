@@ -71,9 +71,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         response = "💡 Per aiutarmi ad allenarmi, scrivi una frase con la parola 'istruzione'. Oppure dimmi se hai bisogno di un aiuto su ferie, appuntamenti o se hai avuto un problema."
 
     # Salvataggio solo se contiene la parola 'istruzione'
-    if "istruzione" in message.lower():
+       if "istruzione" in message.lower():
         save_to_sheet(user, message, response, topic)
-        await update.message.reply_text("📝 Ok, ho trascritto l'istruzione.\n👂 Sto aggiornando il mio cervello. Quando sentirò il contesto che mi hai raccontato, inizierò a ragionare su quel contesto e guiderò il cliente passo passo.\n⚙️ Non clicco ancora sul gestionale, ma imparo il modo giusto di farlo.\n💬 Ora, se vuoi aiutarmi davvero, scrivimi un esempio così:\nCliente: ...\nPrimo: ...")
+        await update.message.reply_text(
+            "📝 Ok, ho trascritto l’istruzione.\n"
+            "👂 Sto aggiornando il mio cervello. Quando sentirò il contesto che mi hai raccontato, inizierò a ragionare su quella dinamica e guiderò il cliente passo passo.\n"
+            "⚙️ Non clicco ancora sul gestionale, ma imparo il modo giusto di farlo.\n"
+            "💬 Ora, se vuoi aiutarmi davvero, scrivimi un esempio concreto così:\n"
+            "Cliente: ...\n"
+            "Primo: ..."
+        )
+
 
     # Mostra tono introduttivo solo se utente nuovo
     if user not in shown_intro:
