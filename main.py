@@ -3,7 +3,7 @@ import os
 import asyncio
 import nest_asyncio
 from telegram.ext import ApplicationBuilder
-from bot.handlers import start_handler, message_handler
+from handlers import start_handler, message_handler  # <-- Niente "bot."
 
 nest_asyncio.apply()
 
