@@ -1,7 +1,7 @@
 # sheet.py
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from telegram import Update
 from telegram.ext import ContextTypes
@@ -19,10 +19,7 @@ sheet = client.open_by_key(SHEET_ID).sheet1
 # Flag per mostrare il messaggio introduttivo solo una volta per utente
 shown_intro = set()
 
-# Modalità di apprendimento attiva (attivabile con "Primo ti insegno")
-learning_mode = set()
 
-# Inferenzia il topic sulla base del messaggio
 def inferisci_topic(message):
     msg = message.lower()
     if "appuntamento" in msg:
@@ -41,35 +38,25 @@ def inferisci_topic(message):
         return "disguido"
     return "altro"
 
-# Salva su Google Sheet
-def save_to_sheet(user, message, response, topic, contesto="generale", fase="auto"):
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    sheet.append_row([timestamp, user, message, response, topic, contesto, fase])
 
-# Gestione messaggi
+def save_to_sheet(user, message, response, topic):
+    timestamp = (datetime.now() + timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S")
+    sheet.append_row([timestamp, user, message, response, topic])
+
+
+# Handler da integrare in handlers.py
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user.full_name
     message = update.message.text
     chat_type = update.message.chat.type
 
+    # Carattere di Primo mostrato una sola volta per utente
+    tono_intro = "🤖 Primo | Sono l'ultimo arrivato, sto imparando! Ora il mio obiettivo è diventare bravissimo a gestire appuntamenti, telefonate e aiutare in ogni situazione. Dimmi come posso esserti utile."
+
+    # Analisi topic prima della risposta
     topic = inferisci_topic(message)
 
-    # Modalità apprendimento attiva?
-    if message.lower().startswith("primo ti insegno"):
-        learning_mode.add(user)
-        intro = "📝 Ok, ho trascritto l'istruzione.\n👂 Sto aggiornando il mio cervello. Quando sentirò 'appuntamento', inizierò a ragionare sul servizio richiesto e guiderò il cliente passo dopo passo.\n⚙️ Non clicco ancora sul gestionale, ma imparo il modo giusto di farlo.\n💬 Ora se vuoi aiutarmi davvero, scrivimi un esempio così:\nCliente: ...\nPrimo: ..."
-        await update.message.reply_text(intro)
-        save_to_sheet(user, message, intro, topic, "apprendimento", "istruzione")
-        return
-
-    # Apprendimento con esempio
-    if user in learning_mode and "cliente:" in message.lower() and "primo:" in message.lower():
-        response = "✅ Ricevuto! Vuoi aggiungere un altro esempio per entrare ancora più nel dettaglio o passiamo alla validazione?"
-        await update.message.reply_text(response)
-        save_to_sheet(user, message, response, topic, "apprendimento", "esempio")
-        return
-
-    # Logica classica
+    # Logica intelligente di risposta
     if "appuntamento" in message.lower():
         response = "📅 Vuoi fissare un appuntamento. Ti serve fissarne uno nuovo o spostarne uno? E puoi lasciare la macchina o aspetti in sede?"
     elif message.lower().strip() == "revisione":
@@ -81,16 +68,19 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif topic == "disguido":
         response = "🔧 Sembra un problema urgente. Vuoi che ti metta in contatto subito con l'officina più vicina o che ti dia dei consigli utili per gestire la situazione?"
     else:
-        response = "🤖 Ciao! Sto alla grande perché sto imparando.\n\nIn questo periodo mi sto concentrando su come gestire gli appuntamenti nel modo migliore. Ogni conversazione che assomiglia a una telefonata con un cliente mi aiuta tantissimo.\n\nSe vuoi aiutarmi davvero, spiegami bene il contesto:\n• scrivi 'Cliente: ...'\n• scrivi subito dopo 'Primo: ...'\n\nOppure se vuoi insegnarmi qualcosa di nuovo, inizia con 'Primo ti insegno ...'"
-        save_to_sheet(user, message, response, topic, "orientamento", "intro")
-        await update.message.reply_text(response)
-        return
+        response = "💡 Per aiutarmi ad allenarmi, scrivi una frase con la parola 'istruzione'. Oppure dimmi se hai bisogno di un aiuto su ferie, appuntamenti o se hai avuto un problema."
 
-    await update.message.reply_text(response)
-
-    # Salva risposta se c'è la parola 'istruzione'
+    # Salvataggio solo se contiene la parola 'istruzione'
     if "istruzione" in message.lower():
-        save_to_sheet(user, message, response, topic, "apprendimento", "istruzione")
+        save_to_sheet(user, message, response, topic)
+        await update.message.reply_text("📝 Ok, ho trascritto l'istruzione.\n👂 Sto aggiornando il mio cervello. Quando sentirò il contesto che mi hai raccontato, inizierò a ragionare su quel contesto e guiderò il cliente passo passo.\n⚙️ Non clicco ancora sul gestionale, ma imparo il modo giusto di farlo.\n💬 Ora, se vuoi aiutarmi davvero, scrivimi un esempio così:\nCliente: ...\nPrimo: ...")
+
+    # Mostra tono introduttivo solo se utente nuovo
+    if user not in shown_intro:
+        await update.message.reply_text(f"{tono_intro}\n\n{response}")
+        shown_intro.add(user)
+    else:
+        await update.message.reply_text(response)
 
     # Disabilita temporaneamente il gruppo per non sporcarlo
     if chat_type != "private":
