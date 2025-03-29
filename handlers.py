@@ -29,8 +29,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Salva nome utente e messaggio originale
     user_name = user.full_name
 
-    # Se è in modalità test: ignora (futura gestione)
-
     # Attiva allenamento
     if message.lower().startswith("primo, ti insegno"):
         user_state[user_id] = "allenamento"
