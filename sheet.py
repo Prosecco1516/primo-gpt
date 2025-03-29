@@ -120,5 +120,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     # Ultimo fallback se nessuna condizione attiva
+    if is_training:
+        response = (
+            "📝 Ricorda che sono in modalità allenamento.\n"
+            "📌 Per favore, scrivi un esempio con:\nCliente: …\nPrimo: …"
+        )
+        await update.message.reply_text(response)
+        return
+
     await update.message.reply_text("💡 Per allenarmi, scrivi una frase che inizi con 'Primo, ti insegno…' oppure 'Primo, ho un’idea…'")
     return
