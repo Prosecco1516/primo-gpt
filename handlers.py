@@ -26,36 +26,46 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = user.id
     chat_type = update.message.chat.type
 
-    # Salva nome utente e messaggio originale
     user_name = user.full_name
+    message_lower = message.lower()
 
-    # Attiva allenamento
-    if message.lower().startswith("primo, ti insegno"):
+    # --- SALUTO ---
+    if any(phrase in message_lower for phrase in ["ciao primo", "come va", "primo!"]):
+        response = (
+            "👋 Ciao! Sono Primo, sto imparando. Al momento il mio focus è sugli appuntamenti.\n"
+            "✍️ Se vuoi allenarmi, scrivi: ‘Primo, ti insegno…’\n"
+            "💡 Se invece vuoi lasciarmi un’idea, scrivi: ‘Primo, ho un’idea…’"
+        )
+        await update.message.reply_text(response)
+        save_to_sheet(user_name, message, response, tipo="saluto", contesto="iniziale")
+        return
+
+    # --- ATTIVA ALLENAMENTO ---
+    if message_lower.startswith("primo, ti insegno"):
         user_state[user_id] = "allenamento"
         response = (
             "🧠 Ok, sono in modalità allenamento.\n"
             "📥 Sto registrando le istruzioni che riceverò.\n"
             "✅ Se saranno approvate, diventeranno parte delle mie risposte ufficiali.\n\n"
             "✍️ Ora, se vuoi aiutarmi davvero, scrivimi un esempio così:\n"
-            "Cliente: cosa dice?\nPrimo: come dovrei rispondere?"
+            "Cliente: cosa desidera\nPrimo: come dovrei rispondere?"
         )
         await update.message.reply_text(response)
         save_to_sheet(user_name, message, response, tipo="istruzione", contesto="avvio allenamento")
         return
 
-    # Se l'utente è in allenamento e scrive un esempio
-    if user_state.get(user_id) == "allenamento" and message.lower().startswith("cliente:"):
+    # --- RICEVE ESEMPIO ---
+    if user_state.get(user_id) == "allenamento" and message_lower.startswith("cliente:"):
         response = (
             "📚 Ricevuto! Questo mi aiuta a gestire meglio la conversazione.\n\n"
-            "💡 Vuoi aggiungere un altro esempio oppure approfondire come continua la conversazione con il cliente?\n"
-            "Puoi anche dirmi cosa fai tu nel gestionale in questo caso."
+            "🧩 Vuoi aggiungere un altro esempio oppure raccontarmi cosa faresti nel gestionale in questa fase?"
         )
         await update.message.reply_text(response)
         save_to_sheet(user_name, message, response, tipo="esempio", contesto="allenamento")
         return
 
-    # Chiude allenamento
-    if "fine allenamento" in message.lower():
+    # --- FINE ALLENAMENTO ---
+    if "fine allenamento" in message_lower:
         user_state[user_id] = "normale"
         response = (
             "🛠️ Allenamento terminato.\n"
@@ -67,8 +77,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="chiusura", contesto="fine allenamento")
         return
 
-    # Accoglie idee
-    if message.lower().startswith("primo, ho un'idea") or message.lower().startswith("ho un'idea"):
+    # --- RICEVE IDEA ---
+    if message_lower.startswith("primo, ho un'idea") or message_lower.startswith("ho un'idea"):
         response = (
             "💡 Idea registrata!\n"
             "🧠 Primo salverà anche queste intuizioni per sviluppi futuri.\n\n"
@@ -78,15 +88,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="idea", contesto="intuizione")
         return
 
-    # Risposta generica e stimolante se non capisce il contesto
+    # --- MESSAGGIO NON RICONOSCIUTO ---
     response = (
-        "💡 Non sono sicuro di aver capito...\n"
+        "💡 Non sono sicuro di aver capito…\n"
         "🧠 Vuoi aiutarmi ad allenarmi? Scrivi una frase che inizi con ‘Primo, ti insegno…’\n\n"
         "📌 Oppure se hai un’intuizione, scrivi: ‘Primo, ho un’idea…’"
     )
     await update.message.reply_text(response)
     save_to_sheet(user_name, message, response, tipo="generico", contesto="non riconosciuto")
 
-# Handler Telegram
+# --- HANDLERS ---
 start_handler = CommandHandler("start", start)
 message_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
+
