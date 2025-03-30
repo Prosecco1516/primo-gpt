@@ -12,7 +12,7 @@ WELCOME_MESSAGE = (
     "🎯 Al momento mi sto concentrando sull’apprendere come gestire appuntamenti in modo perfetto, ma posso registrare qualsiasi istruzione utile all’azienda.\n\n"
     "✍️ Se vuoi insegnarmi qualcosa, inizia il messaggio con:\n‘Primo, ti insegno…’\n\n"
     "💡 Se vuoi contribuire con un’idea, scrivi:\n‘Primo, ho un’idea…’\n\n"
-    "🧪 Per ora la modalità test è disattivata. Se vuoi aiutarmi a crescere, l’allenamento è la strada migliore."
+    "🧪 La modalità test è **bloccata**: devo ancora imparare bene! Se vuoi aiutarmi, allenami con istruzioni reali."
 )
 
 # --- HANDLER DI PARTENZA ---
@@ -41,7 +41,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     # --- ATTIVA ALLENAMENTO ---
-    if message_lower.startswith("primo, ti insegno"):
+    if "ti insegno" in message_lower:
         user_state[user_id] = "allenamento"
         response = (
             "🧠 Ok, sono in modalità allenamento.\n"
@@ -90,9 +90,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # --- MESSAGGIO NON RICONOSCIUTO ---
     response = (
-        "💡 Non sono sicuro di aver capito…\n"
-        "🧠 Vuoi aiutarmi ad allenarmi? Scrivi una frase che inizi con ‘Primo, ti insegno…’\n\n"
-        "📌 Oppure se hai un’intuizione, scrivi: ‘Primo, ho un’idea…’"
+        "💬 Sto ancora imparando e non ho capito bene...\n"
+        "🧠 Se vuoi allenarmi, scrivi: ‘Primo, ti insegno…’\n"
+        "💡 Oppure se hai un’intuizione o una proposta, scrivi: ‘Primo, ho un’idea…’"
     )
     await update.message.reply_text(response)
     save_to_sheet(user_name, message, response, tipo="generico", contesto="non riconosciuto")
@@ -100,4 +100,3 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # --- HANDLERS ---
 start_handler = CommandHandler("start", start)
 message_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
-
