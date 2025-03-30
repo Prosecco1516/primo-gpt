@@ -34,7 +34,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         response = (
             "👋 Ciao! Sono Primo, sto imparando. Al momento il mio focus è sugli appuntamenti.\n"
             "✍️ Se vuoi allenarmi, scrivi: ‘Primo, ti insegno…’\n"
-            "💡 Se invece vuoi lasciarmi un’idea, scrivi: ‘Primo, ho un’idea…’"
+            "💡 Se invece vuoi lasciarmi un’idea, scrivi: ‘Primo, ho un’idea…’\n"
+            "🧪 La modalità test è **bloccata**. Se vuoi aiutarmi a crescere, l’allenamento è la strada migliore."
         )
         await update.message.reply_text(response)
         save_to_sheet(user_name, message, response, tipo="saluto", contesto="iniziale")
@@ -62,6 +63,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         await update.message.reply_text(response)
         save_to_sheet(user_name, message, response, tipo="esempio", contesto="allenamento")
+        return
+
+    # --- PROCESSO GESTIONALE ---
+    if user_state.get(user_id) == "allenamento" and any(word in message_lower for word in ["gestionale", "campo agenda", "clicco"]):
+        response = (
+            "🖥️ Perfetto, ho salvato anche questa informazione sul processo gestionale.\n"
+            "📬 Tutto questo mi aiuta a migliorare passo dopo passo!"
+        )
+        await update.message.reply_text(response)
+        save_to_sheet(user_name, message, response, tipo="processo", contesto="gestionale")
         return
 
     # --- FINE ALLENAMENTO ---
