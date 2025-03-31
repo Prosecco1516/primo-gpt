@@ -35,19 +35,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="saluto", contesto="iniziale")
         return
 
-    # --- ATTIVA ALLENAMENTO ---
-    if "ti insegno" in message_lower:
-        user_state[user_id] = "allenamento"
-        response = (
-            "🧠 Ok, sono in modalità allenamento.\n"
-            "📥 Sto registrando le istruzioni che riceverò.\n"
-            "✅ Se saranno approvate, diventeranno parte delle mie risposte ufficiali.\n\n"
-            "✍️ Ora, se vuoi aiutarmi davvero, scrivimi un esempio così:\n"
-            "Cliente: cosa desidera\nPrimo: come dovrei rispondere?"
-        )
-        await update.message.reply_text(response)
-        save_to_sheet(user_name, message, response, tipo="istruzione", contesto="avvio allenamento")
-        return
+    # --- ATTIVA ALLENAMENTO (MODIFICATO) ---
+if "ti insegno" in message_lower:
+    user_state[user_id] = "allenamento"
+    response = (
+        "🧠 Ok, sono in modalità allenamento.\n"
+        "📥 Sto registrando le istruzioni che riceverò.\n"
+        "✅ Se saranno approvate, diventeranno parte delle mie risposte ufficiali.\n"
+        "✅ Ti va di continuare ad insegnarmi ancora?\n\n"
+        "✍️ Oppure fammi un esempio!\n"
+        "Scrivimi così:\n"
+        "Cliente: cosa desidera\n"
+        "Primo: come dovrei rispondere?"
+    )
+    await update.message.reply_text(response)
+    save_to_sheet(user_name, message, response, tipo="istruzione", contesto="avvio allenamento")
+    return
+
 
     # --- RICEVE ESEMPIO ---
     if user_state.get(user_id) == "allenamento" and message_lower.startswith("cliente:"):
