@@ -63,9 +63,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # --- DESCRIZIONE PROCESSO GESTIONALE ---
     if user_state.get(user_id) == "allenamento" and any(x in message_lower for x in ["gestionale", "clicco", "campo agenda", "procedura"]):
         response = (
-            "🖥️ Perfetto, ho salvato anche questa informazione sul processo gestionale.\n"
-            "📬 Tutto questo mi aiuta a migliorare passo dopo passo!"
-        )
+    "🖥️ Perfetto, ho salvato anche questa informazione sul processo gestionale.\n"
+    "📬 Tutto questo mi aiuta a migliorare passo dopo passo!\n\n"
+    "🔄 Vuoi continuare ad allenarmi?\n"
+    "• Usa ‘Primo, ti insegno…’ per darmi nuove istruzioni\n"
+    "• Fammi un esempio con: Cliente: … Primo: …\n"
+    "• Spiegami cosa faresti nel gestionale in questa fase\n"
+    "• Oppure condividi un’intuizione con: Primo, ho un’idea…"
+)
+
         await update.message.reply_text(response)
         save_to_sheet(user_name, message, response, tipo="processo", contesto="gestionale")
         return
