@@ -1,3 +1,5 @@
+# handlers.py
+
 from telegram import Update
 from telegram.ext import MessageHandler, filters, ContextTypes, CommandHandler
 from sheet import save_to_sheet
@@ -93,19 +95,29 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="avvio_test", contesto="test")
         return
 
-    # --- RISPOSTE DURANTE IL TEST ---
+    # --- MODALITÀ TEST: RISPOSTE SIMULATE ---
     if user_state.get(user_id) == "test":
-        if "appuntamento" in message_lower or "revisione" in message_lower or "pneumatici" in message_lower:
+        presentazione = (
+            "👋 Ciao! Sono **PrimoGPT**, il nuovo assistente AI dell’officina.\n"
+            "Mi sto allenando ogni giorno per aiutarti a gestire appuntamenti, clienti e imprevisti.\n"
+            "Sono stato istruito dal team, ma non sono umano: se preferisci parlare con un collega in carne e ossa, te lo passo volentieri.\n"
+            "Altrimenti... fammi provare! 😉\n\n"
+        )
+
+        if "appuntamento" in message_lower:
             response = (
+                presentazione +
                 "📅 Certamente! Che tipo di servizio ti serve? Revisione, pneumatici o meccanica?\n"
                 "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
             )
         else:
             response = (
+                presentazione +
                 "🤖 Sto simulando una risposta operativa!\n"
                 "📌 Ma non ho riconosciuto il contesto.\n"
                 "🧠 Se vuoi tornare ad allenarmi, scrivi ‘fine test’."
             )
+
         await update.message.reply_text(response)
         save_to_sheet(user_name, message, response, tipo="test", contesto="risposta")
         return
@@ -115,8 +127,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_state[user_id] = "allenamento"
         response = (
             "🧪 Test concluso. Grazie!\n"
-            "📥 Sono tornato in modalità allenamento.\n"
-            "✍️ Se vuoi, continua con ‘Primo, ti insegno…’ oppure fammi un esempio!"
+            "📥 Se vuoi ricominciare ad allenarmi, scrivi ‘Primo, ti insegno…’"
         )
         await update.message.reply_text(response)
         save_to_sheet(user_name, message, response, tipo="fine_test", contesto="test")
@@ -133,7 +144,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="idea", contesto="intuizione")
         return
 
-    # --- FALLBACK GENERICO ---
+    # --- DEFAULT: NON RICONOSCIUTO ---
     response = (
         "💬 Sto ancora imparando e non ho capito bene...\n"
         "🧠 Se vuoi allenarmi, scrivi: ‘Primo, ti insegno…’\n"
@@ -142,6 +153,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(response)
     save_to_sheet(user_name, message, response, tipo="generico", contesto="non riconosciuto")
 
-# --- EXPORT HANDLERS ---
+# --- EXPORT HANDLER ---
 start_handler = CommandHandler("start", start)
 message_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
+
