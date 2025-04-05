@@ -32,7 +32,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="saluto", contesto="iniziale")
         return
 
-    # --- AVVIO ALLENAMENTO ---
+    # --- ATTIVA ALLENAMENTO ---
     if "ti insegno" in message_lower:
         user_state[user_id] = "allenamento"
         response = (
@@ -47,7 +47,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="istruzione", contesto="avvio allenamento")
         return
 
-    # --- ESEMPIO ---
+    # --- RICEVE ESEMPIO ---
     if user_state.get(user_id) == "allenamento" and message_lower.startswith("cliente:"):
         response = (
             "📚 Ricevuto! Questo mi aiuta a gestire meglio la conversazione.\n\n"
@@ -57,7 +57,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="esempio", contesto="allenamento")
         return
 
-    # --- PROCESSO GESTIONALE ---
+    # --- DESCRIZIONE PROCESSO GESTIONALE ---
     if user_state.get(user_id) == "allenamento" and any(x in message_lower for x in ["gestionale", "clicco", "campo agenda", "procedura"]):
         response = (
             "🖥️ Perfetto, ho salvato anche questa informazione sul processo gestionale.\n"
@@ -81,7 +81,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="chiusura", contesto="fine allenamento")
         return
 
-    # --- ATTIVA TEST ---
+    # --- AVVIO TEST ---
     if "iniziamo un test" in message_lower:
         user_state[user_id] = "test"
         response = (
@@ -93,17 +93,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="avvio_test", contesto="test")
         return
 
-    # --- DURANTE TEST ---
+    # --- RISPOSTE DURANTE IL TEST ---
     if user_state.get(user_id) == "test":
-        if "appuntamento" in message_lower:
+        if "appuntamento" in message_lower or "revisione" in message_lower or "pneumatici" in message_lower:
             response = (
                 "📅 Certamente! Che tipo di servizio ti serve? Revisione, pneumatici o meccanica?\n"
                 "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
-            )
-        elif "umano" in message_lower:
-            response = (
-                "🤖 Al momento non sono ancora allenato per passarti un collega umano.\n"
-                "📌 Se vuoi che impari a farlo, scrivimi ‘ti insegno’, oppure forniscimi un esempio o una procedura."
             )
         else:
             response = (
@@ -120,14 +115,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_state[user_id] = "allenamento"
         response = (
             "🧪 Test concluso. Grazie!\n"
-            "📥 Sono tornato in modalità allenamento. Se vuoi, continua con ‘Primo, ti insegno…’"
+            "📥 Sono tornato in modalità allenamento.\n"
+            "✍️ Se vuoi, continua con ‘Primo, ti insegno…’ oppure fammi un esempio!"
         )
         await update.message.reply_text(response)
         save_to_sheet(user_name, message, response, tipo="fine_test", contesto="test")
         return
 
     # --- IDEA ---
-    if message_lower.startswith("primo, ho un'idea") or message_lower.startswith("ho un'idea") or "idea" in message_lower:
+    if message_lower.startswith("primo, ho un'idea") or message_lower.startswith("ho un'idea"):
         response = (
             "💡 Idea registrata!\n"
             "🧠 Primo salverà anche queste intuizioni per sviluppi futuri.\n\n"
@@ -137,7 +133,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="idea", contesto="intuizione")
         return
 
-    # --- DEFAULT --- 
+    # --- FALLBACK GENERICO ---
     response = (
         "💬 Sto ancora imparando e non ho capito bene...\n"
         "🧠 Se vuoi allenarmi, scrivi: ‘Primo, ti insegno…’\n"
@@ -146,6 +142,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(response)
     save_to_sheet(user_name, message, response, tipo="generico", contesto="non riconosciuto")
 
-# --- EXPORT HANDLER ---
+# --- EXPORT HANDLERS ---
 start_handler = CommandHandler("start", start)
 message_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
