@@ -5,7 +5,7 @@ from sheet import save_to_sheet
 # Stato temporaneo per ogni utente
 user_state = {}
 
-# --- MESSAGGIO DI BENVENUTO ---
+# --- RISPOSTA DI BENVENUTO ---
 WELCOME_MESSAGE = (
     "🤖 Ciao! Sono Primo, sto imparando. Al momento il mio focus è sugli appuntamenti.\n\n"
     "✍️ Se vuoi allenarmi, scrivi: ‘Primo, ti insegno…’\n"
@@ -86,26 +86,42 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_state[user_id] = "test"
         response = (
             "🧪 Modalità test attiva!\n"
-            "📍 Ora risponderò come se fossi già operativo.\n"
-            "Scrivimi una frase come se fossi un cliente reale."
+            "🤖 Ciao, sono PrimoGPT. Sono ancora in fase di addestramento ma sto imparando a gestire le conversazioni.\n"
+            "💬 Posso aiutarti con appuntamenti, clienti o problemi. Per qualsiasi cosa, scrivi pure qui.\n\n"
+            "📌 Inizia scrivendo come se fossi un cliente reale."
         )
         await update.message.reply_text(response)
         save_to_sheet(user_name, message, response, tipo="avvio_test", contesto="test")
         return
 
-    # --- DURANTE IL TEST ---
+    # --- RISPOSTE DURANTE TEST ---
     if user_state.get(user_id) == "test":
-        if any(x in message_lower for x in ["appuntamento", "revisione", "pneumatici", "meccanica"]):
+        if "appuntamento" in message_lower:
             response = (
-                "📞 Buongiorno! Sono Primo, il primo assistente AI dell’officina. Sto imparando a gestire le richieste come questa.\n"
-                "📅 Che tipo di appuntamento desideri? Revisione, pneumatici o meccanica?\n"
-                "📎 Se in futuro vuoi parlare con un collega umano, potrai farlo, ma fidati: io sono allenato proprio da loro."
+                "📅 Certamente! Posso aiutarti con un appuntamento.\n"
+                "Che tipo di servizio ti serve? Revisione, pneumatici o meccanica?\n"
+                "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
+            )
+        elif "meccanica" in message_lower:
+            response = (
+                "🔧 Ti consiglio la sede di Via San Donà per la meccanica. Vuoi che ti metta in contatto?\n"
+                "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
+            )
+        elif "pneumatici" in message_lower:
+            response = (
+                "🛞 Ti consiglio la sede del Centro La Piazza per i pneumatici. Vuoi che ti fisso l'appuntamento?\n"
+                "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
+            )
+        elif "revisione" in message_lower:
+            response = (
+                "📋 Per la revisione possiamo fissare un appuntamento nella prima quindicina del mese. Hai preferenze di giorno o orario?\n"
+                "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
             )
         else:
             response = (
-                "🤖 Sto simulando una risposta operativa!\n"
-                "📌 Ma non ho riconosciuto il contesto.\n"
-                "💡 Se vuoi tornare ad allenarmi, scrivi ‘fine test’."
+                "🤖 Sto simulando una risposta operativa, ma non ho capito bene la richiesta.\n"
+                "Prova a scrivermi qualcosa come: 'Vorrei un appuntamento' o 'Ho un problema con la revisione'.\n"
+                "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
             )
         await update.message.reply_text(response)
         save_to_sheet(user_name, message, response, tipo="test", contesto="risposta")
@@ -116,15 +132,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_state[user_id] = "allenamento"
         response = (
             "🧪 Test concluso. Grazie!\n"
-            "📥 Sono tornato in modalità allenamento!\n"
-            "Scrivimi: ‘Primo, ti insegno…’ oppure un esempio: Cliente: … Primo: …"
+            "📥 Torno in modalità allenamento: puoi riprendere con ‘Primo, ti insegno…’"
         )
         await update.message.reply_text(response)
         save_to_sheet(user_name, message, response, tipo="fine_test", contesto="test")
         return
 
     # --- IDEA ---
-    if message_lower.startswith("primo, ho un'idea") or message_lower.startswith("ho un'idea"):
+    if message_lower.startswith("primo, ho un'idea") or message_lower.startswith("ho un'idea") or "idea" in message_lower:
         response = (
             "💡 Idea registrata!\n"
             "🧠 Primo salverà anche queste intuizioni per sviluppi futuri.\n\n"
@@ -134,7 +149,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="idea", contesto="intuizione")
         return
 
-    # --- DEFAULT ---
+    # --- DEFAULT: NON RICONOSCIUTO ---
     response = (
         "💬 Sto ancora imparando e non ho capito bene...\n"
         "🧠 Se vuoi allenarmi, scrivi: ‘Primo, ti insegno…’\n"
@@ -146,6 +161,3 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # --- EXPORT HANDLER ---
 start_handler = CommandHandler("start", start)
 message_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
-
-
-
