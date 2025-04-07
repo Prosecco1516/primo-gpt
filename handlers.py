@@ -130,8 +130,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="chiusura", contesto="fine allenamento")
         return
 
-    # --- FINE TEST ---
-    if "fine test" in message_lower:
+    # --- FINE TEST (prioritario e robusto) ---
+if "fine test" in message_lower.strip():
+    if user_state.get(user_id) == "test":
         user_state[user_id] = "allenamento"
         response = (
             "🧪 Test concluso. Grazie!\n"
@@ -140,6 +141,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(response)
         save_to_sheet(user_name, message, response, tipo="fine_test", contesto="test")
         return
+
 
     # --- AVVIO TEST ---
     if "iniziamo un test" in message_lower:
