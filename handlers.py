@@ -32,6 +32,40 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="saluto", contesto="iniziale")
         return
 
+    # BLOCCA ogni allenamento mentre sei in modalità test
+    if user_state.get(user_id) == "test":
+        # Risposte simulate durante test
+        if "appuntamento" in message_lower:
+            response = (
+                "🤖 Ciao, sono PrimoGPT. Sono ancora in fase di addestramento ma sto imparando a gestire le conversazioni.\n"
+                "📅 Posso aiutarti con un appuntamento. Che tipo di servizio ti serve? Revisione, pneumatici o meccanica?\n"
+                "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
+            )
+        elif "meccanica" in message_lower:
+            response = (
+                "🔧 Ti consiglio la sede di Via San Donà per la meccanica. Vuoi che ti metta in contatto?\n"
+                "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
+            )
+        elif "pneumatici" in message_lower:
+            response = (
+                "🛞 Ti consiglio la sede del Centro La Piazza per i pneumatici. Vuoi che ti fisso l'appuntamento?\n"
+                "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
+            )
+        elif "revisione" in message_lower:
+            response = (
+                "📋 Per la revisione possiamo fissare un appuntamento nella prima quindicina del mese. Hai preferenze di giorno o orario?\n"
+                "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
+            )
+        else:
+            response = (
+                "🤖 Sto simulando una risposta operativa, ma non ho capito bene la richiesta.\n"
+                "Prova con: 'Vorrei un appuntamento', 'Ho bucato', o 'Devo fare la revisione'.\n"
+                "🧠 Per tornare in modalità allenamento, scrivi ‘fine test’."
+            )
+        await update.message.reply_text(response)
+        save_to_sheet(user_name, message, response, tipo="test", contesto="risposta")
+        return
+
     # --- ATTIVA ALLENAMENTO ---
     if "ti insegno" in message_lower:
         user_state[user_id] = "allenamento"
@@ -57,7 +91,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="esempio", contesto="allenamento")
         return
 
-    # --- DESCRIZIONE PROCESSO GESTIONALE ---
+    # --- DESCRIZIONE GESTIONALE ---
     if user_state.get(user_id) == "allenamento" and any(x in message_lower for x in ["gestionale", "clicco", "campo agenda", "procedura"]):
         response = (
             "🖥️ Perfetto, ho salvato anche questa informazione sul processo gestionale.\n"
@@ -66,6 +100,21 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         await update.message.reply_text(response)
         save_to_sheet(user_name, message, response, tipo="processo", contesto="gestionale")
+        return
+
+    # --- IDEA ---
+    if user_state.get(user_id) != "test" and (
+        message_lower.startswith("primo, ho un'idea") or
+        message_lower.startswith("ho un'idea") or
+        "idea" in message_lower
+    ):
+        response = (
+            "💡 Idea registrata!\n"
+            "🧠 Primo salverà anche queste intuizioni per sviluppi futuri.\n\n"
+            "✍️ Se vuoi, continua con altri dettagli o esempi concreti."
+        )
+        await update.message.reply_text(response)
+        save_to_sheet(user_name, message, response, tipo="idea", contesto="intuizione")
         return
 
     # --- FINE ALLENAMENTO ---
@@ -81,6 +130,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="chiusura", contesto="fine allenamento")
         return
 
+    # --- FINE TEST ---
+    if "fine test" in message_lower:
+        user_state[user_id] = "allenamento"
+        response = (
+            "🧪 Test concluso. Grazie!\n"
+            "📥 Torno in modalità allenamento: puoi riprendere con ‘Primo, ti insegno…’"
+        )
+        await update.message.reply_text(response)
+        save_to_sheet(user_name, message, response, tipo="fine_test", contesto="test")
+        return
+
     # --- AVVIO TEST ---
     if "iniziamo un test" in message_lower:
         user_state[user_id] = "test"
@@ -94,62 +154,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_to_sheet(user_name, message, response, tipo="avvio_test", contesto="test")
         return
 
-    # --- RISPOSTE DURANTE TEST ---
-    if user_state.get(user_id) == "test":
-        if "appuntamento" in message_lower:
-            response = (
-                "📅 Certamente! Posso aiutarti con un appuntamento.\n"
-                "Che tipo di servizio ti serve? Revisione, pneumatici o meccanica?\n"
-                "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
-            )
-        elif "meccanica" in message_lower:
-            response = (
-                "🔧 Ti consiglio la sede di Via San Donà per la meccanica. Vuoi che ti metta in contatto?\n"
-                "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
-            )
-        elif "pneumatici" in message_lower:
-            response = (
-                "🛞 Ti consiglio la sede del Centro La Piazza per i pneumatici. Vuoi che ti fisso l'appuntamento?\n"
-                "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
-            )
-        elif "revisione" in message_lower:
-            response = (
-                "📋 Per la revisione possiamo fissare un appuntamento nella prima quindicina del mese. Hai preferenze di giorno o orario?\n"
-                "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
-            )
-        else:
-            response = (
-                "🤖 Sto simulando una risposta operativa, ma non ho capito bene la richiesta.\n"
-                "Prova a scrivermi qualcosa come: 'Vorrei un appuntamento' o 'Ho un problema con la revisione'.\n"
-                "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
-            )
-        await update.message.reply_text(response)
-        save_to_sheet(user_name, message, response, tipo="test", contesto="risposta")
-        return
-
-    # --- FINE TEST ---
-    if "fine test" in message_lower:
-        user_state[user_id] = "allenamento"
-        response = (
-            "🧪 Test concluso. Grazie!\n"
-            "📥 Torno in modalità allenamento: puoi riprendere con ‘Primo, ti insegno…’"
-        )
-        await update.message.reply_text(response)
-        save_to_sheet(user_name, message, response, tipo="fine_test", contesto="test")
-        return
-
-    # --- IDEA ---
-    if message_lower.startswith("primo, ho un'idea") or message_lower.startswith("ho un'idea") or "idea" in message_lower:
-        response = (
-            "💡 Idea registrata!\n"
-            "🧠 Primo salverà anche queste intuizioni per sviluppi futuri.\n\n"
-            "✍️ Se vuoi, continua con altri dettagli o esempi concreti."
-        )
-        await update.message.reply_text(response)
-        save_to_sheet(user_name, message, response, tipo="idea", contesto="intuizione")
-        return
-
-    # --- DEFAULT: NON RICONOSCIUTO ---
+    # --- MESSAGGIO NON RICONOSCIUTO ---
     response = (
         "💬 Sto ancora imparando e non ho capito bene...\n"
         "🧠 Se vuoi allenarmi, scrivi: ‘Primo, ti insegno…’\n"
@@ -157,6 +162,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_text(response)
     save_to_sheet(user_name, message, response, tipo="generico", contesto="non riconosciuto")
+
 
 # --- EXPORT HANDLER ---
 start_handler = CommandHandler("start", start)
