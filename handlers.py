@@ -27,23 +27,19 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 stato = user_state.get(user_id, "normale")
 
-# --- SALUTO ---
-if any(x in message_lower for x in ["ciao", "buongiorno", "piacere", "sono", "salve"]):
-    if stato == "test":
-        response = (
-            "🤖 Ciao, sono PrimoGPT!\n"
-            "Non sono umano, ma sono stato addestrato dai miei colleghi per aiutarti al meglio.\n"
-            "Se vuoi parlare con un collega in carne e ossa posso provare a contattarlo,\n"
-            "ma intanto raccontami pure: come posso esserti utile?"
-        )
-    else:
-        response = WELCOME_MESSAGE
+# --- SALUTO / PRESENTAZIONE ---
+if any(x in message_lower for x in ["ciao", "buongiorno", "piacere", "sono", "salve", "eccomi"]) and user_state.get(user_id) != "test":
+    response = (
+        "👋 Ciao! Sono PrimoGPT.\n"
+        "Non sono umano ma vengo allenato ogni giorno dai miei colleghi in carne e ossa.\n"
+        "Se vuoi posso anche farti parlare con un collega vero. Intanto, come posso aiutarti?"
+    )
     await update.message.reply_text(response)
-    save_to_sheet(user_name, message, response, tipo="saluto", contesto="iniziale")
+    save_to_sheet(user_name, message, response, tipo="saluto", contesto="presentazione")
     return
 
-# --- ATTIVA ALLENAMENTO ---
-if "ti insegno" in message_lower and stato != "test":
+# --- ATTIVA MODALITÀ ALLENAMENTO ---
+if "ti insegno" in message_lower and user_state.get(user_id) != "test":
     user_state[user_id] = "allenamento"
     response = (
         "🧠 Ok, sono in modalità allenamento.\n"
@@ -57,8 +53,8 @@ if "ti insegno" in message_lower and stato != "test":
     save_to_sheet(user_name, message, response, tipo="istruzione", contesto="avvio allenamento")
     return
 
-# --- RICEVE ESEMPIO ---
-if stato == "allenamento" and message_lower.startswith("cliente:"):
+# --- ESEMPIO CLIENTE: / PRIMO: SOLO IN MODALITÀ ALLENAMENTO ---
+if user_state.get(user_id) == "allenamento" and message_lower.startswith("cliente:"):
     response = (
         "📚 Ricevuto! Questo mi aiuta a gestire meglio la conversazione.\n\n"
         "🧩 Vuoi aggiungere un altro esempio o spiegarmi altre dinamiche oppure raccontarmi cosa faresti nel gestionale in questa fase?"
@@ -67,8 +63,8 @@ if stato == "allenamento" and message_lower.startswith("cliente:"):
     save_to_sheet(user_name, message, response, tipo="esempio", contesto="allenamento")
     return
 
-# --- DESCRIZIONE PROCESSO GESTIONALE ---
-if stato == "allenamento" and any(x in message_lower for x in ["gestionale", "clicco", "campo agenda", "procedura"]):
+# --- PROCESSO GESTIONALE SOLO IN ALLENAMENTO ---
+if user_state.get(user_id) == "allenamento" and any(x in message_lower for x in ["gestionale", "campo agenda", "clicco", "procedura"]):
     response = (
         "🖥️ Perfetto, ho salvato anche questa informazione sul processo gestionale.\n"
         "📬 Tutto questo mi aiuta a migliorare passo dopo passo!\n\n"
@@ -76,6 +72,17 @@ if stato == "allenamento" and any(x in message_lower for x in ["gestionale", "cl
     )
     await update.message.reply_text(response)
     save_to_sheet(user_name, message, response, tipo="processo", contesto="gestionale")
+    return
+
+# --- IDEA SOLO IN ALLENAMENTO ---
+if user_state.get(user_id) == "allenamento" and ("ho un'idea" in message_lower or "idea" in message_lower):
+    response = (
+        "💡 Idea registrata!\n"
+        "🧠 Primo salverà anche queste intuizioni per sviluppi futuri.\n\n"
+        "✍️ Se vuoi, continua con altri dettagli o esempi concreti."
+    )
+    await update.message.reply_text(response)
+    save_to_sheet(user_name, message, response, tipo="idea", contesto="intuizione")
     return
 
 # --- FINE ALLENAMENTO ---
@@ -88,10 +95,10 @@ if "fine allenamento" in message_lower:
         "Per ricominciare: ‘Primo, ti insegno…’"
     )
     await update.message.reply_text(response)
-    save_to_sheet(user_name, message, response, tipo="chiusura", contesto="fine allenamento")
+    save_to_sheet(user_name, message, response, tipo="fine_allenamento", contesto="chiusura")
     return
 
-# --- AVVIO TEST ---
+# --- ATTIVA TEST ---
 if "iniziamo un test" in message_lower:
     user_state[user_id] = "test"
     response = (
@@ -101,11 +108,22 @@ if "iniziamo un test" in message_lower:
         "📌 Inizia scrivendo come se fossi un cliente reale."
     )
     await update.message.reply_text(response)
-    save_to_sheet(user_name, message, response, tipo="avvio_test", contesto="test")
+    save_to_sheet(user_name, message, response, tipo="attiva_test", contesto="test")
     return
 
-# --- RISPOSTE DURANTE TEST ---
-if stato == "test":
+# --- FINE TEST ---
+if "fine test" in message_lower:
+    user_state[user_id] = "allenamento"
+    response = (
+        "🧪 Test concluso. Grazie!\n"
+        "📥 Torno in modalità allenamento: puoi riprendere con ‘Primo, ti insegno…’"
+    )
+    await update.message.reply_text(response)
+    save_to_sheet(user_name, message, response, tipo="fine_test", contesto="test")
+    return
+
+# --- RISPOSTE IN MODALITÀ TEST ---
+if user_state.get(user_id) == "test":
     if "appuntamento" in message_lower:
         response = (
             "📅 Certamente! Posso aiutarti con un appuntamento.\n"
@@ -134,38 +152,16 @@ if stato == "test":
             "🧠 Se vuoi tornare in modalità allenamento, scrivi ‘fine test’."
         )
     await update.message.reply_text(response)
-    save_to_sheet(user_name, message, response, tipo="test", contesto="risposta")
+    save_to_sheet(user_name, message, response, tipo="risposta_test", contesto="simulazione")
     return
 
-# --- FINE TEST ---
-if "fine test" in message_lower:
-    user_state[user_id] = "normale"
-    response = (
-        "🧪 Test concluso. Grazie!\n"
-        "📥 Torno in modalità allenamento: puoi riprendere con ‘Primo, ti insegno…’"
-    )
-    await update.message.reply_text(response)
-    save_to_sheet(user_name, message, response, tipo="fine_test", contesto="test")
-    return
-
-# --- IDEA ---
-if any(trigger in message_lower for trigger in ["primo, ho un'idea", "ho un'idea", "idea"]):
-    if stato != "test":
-        response = (
-            "💡 Idea registrata!\n"
-            "🧠 Primo salverà anche queste intuizioni per sviluppi futuri.\n\n"
-            "✍️ Se vuoi, continua con altri dettagli o esempi concreti."
-        )
-        await update.message.reply_text(response)
-        save_to_sheet(user_name, message, response, tipo="idea", contesto="intuizione")
-    return
-
-# --- DEFAULT: NON RICONOSCIUTO ---
+# --- MESSAGGIO NON RICONOSCIUTO ---
 response = (
     "💬 Sto ancora imparando e non ho capito bene...\n"
     "🧠 Se vuoi allenarmi, scrivi: ‘Primo, ti insegno…’\n"
     "💡 Oppure se hai un’intuizione, scrivi: ‘Primo, ho un’idea…’"
 )
 await update.message.reply_text(response)
-save_to_sheet(user_name, message, response, tipo="generico", contesto="non riconosciuto")
+save_to_sheet(user_name, message, response, tipo="non riconosciuto", contesto="default")
+
 
